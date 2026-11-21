@@ -1,7 +1,7 @@
 /* Service worker của vỏ app Nón Lá Coffee:
    lưu sẵn vỏ app (logo, màn hình chờ) để mở nhanh và vẫn hiện thông báo khi mất mạng.
    Dữ liệu chấm công luôn lấy trực tiếp từ Google, không lưu ở đây. */
-var CACHE = 'nonla-shell-v1';
+var CACHE = 'nonla-shell-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest',
   'icons/logo-256.png', 'icons/icon-192.png', 'icons/icon-512.png',
   'icons/maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-48.png'];

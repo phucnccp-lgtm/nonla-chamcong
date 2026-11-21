@@ -51,7 +51,7 @@
 
 <script>
   /* ====== DÁN LINK ỨNG DỤNG WEB APPS SCRIPT (ĐUÔI /exec) VÀO GIỮA HAI DẤU NHÁY ====== */
-  var APP_URL = 'https://script.google.com/macros/s/AKfycbwAXKxgftdA-pMpkag1fswGQdJYJOFj4dScAE7V7R3Wc7C7Wakca5JFG90AnYre0uaC/exec';
+  var APP_URL = 'https://script.google.com/macros/s/AKfycbwmUzRVIAkfIajHKjUMT01io-JlMss_5ROOvzPGg5kpHwTD1RwgBvyZB9GO7uIkqrlWYA/exec';
   /* ================================================================================ */
 
   var frame = document.getElementById('frame');
@@ -98,6 +98,25 @@
   window.addEventListener('online', function () { if (!frame.classList.contains('ready')) start(); });
   window.addEventListener('offline', function () {
     if (!frame.classList.contains('ready')) show('<b>Không có kết nối mạng.</b><br>Hãy bật Wi-Fi hoặc 4G rồi thử lại.', true);
+  });
+
+  /* Lấy GPS giúp app chấm công bên trong (khung của Google có thể bị trình duyệt chặn định vị).
+     Chỉ trả lời các khung đến từ Google Apps Script. */
+  var GAS_ORIGIN = /^https:\/\/([a-z0-9-]+\.)*(googleusercontent\.com|script\.google\.com)$/;
+  window.addEventListener('message', function (e) {
+    var d = e.data || {};
+    if (d.type !== 'nonla-gps-request' || !d.id || !e.source || !GAS_ORIGIN.test(e.origin)) return;
+    var reply = function (obj) { obj.id = d.id; try { e.source.postMessage(obj, e.origin); } catch (x) {} };
+    reply({ type: 'nonla-gps-ack' });
+    if (!navigator.geolocation) { reply({ type: 'nonla-gps', ok: false, error: 'Điện thoại không hỗ trợ định vị.' }); return; }
+    navigator.geolocation.getCurrentPosition(function (p) {
+      reply({ type: 'nonla-gps', ok: true, lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy });
+    }, function (err) {
+      var m = err.code === 1 ? 'Bạn chưa cho phép app Nón Lá dùng vị trí. Vào Cài đặt điện thoại → Vị trí → cho phép, rồi thử lại.'
+        : err.code === 2 ? 'Không xác định được vị trí. Hãy bật GPS (Vị trí) trên điện thoại.'
+        : 'Lấy vị trí quá lâu. Hãy bật "Vị trí chính xác" và thử lại.';
+      reply({ type: 'nonla-gps', ok: false, error: m });
+    }, { enableHighAccuracy: true, timeout: 18000, maximumAge: 0 });
   });
 
   if ('serviceWorker' in navigator) {
